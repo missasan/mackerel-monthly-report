@@ -24,7 +24,7 @@ func main() {
 	client := mackerel.NewClient(*apikey)
 	serviceName := "mackerel-container-agent"
 
-	resp, err := client.FindAlerts()
+	resp, err := client.FindWithClosedAlerts()
 	if err != nil {
 		log.Fatalln("Fetch alerts failed: ", err)
 	}
@@ -38,6 +38,10 @@ func main() {
 	)
 
 	for _, a := range resp.Alerts {
+		if time.Unix(a.OpenedAt, 0).Month() != time.Now().AddDate(0, -1, 0).Month() {
+			continue
+		}
+
 		numTotal++
 
 		switch a.Status {
@@ -54,12 +58,19 @@ func main() {
 
 	nextID := resp.NextID
 	for nextID != "" {
-		respNext, err2 := client.FindAlertsByNextID(nextID)
+		respNext, err2 := client.FindWithClosedAlertsByNextID(nextID)
 		if err2 != nil {
 			log.Fatalln("Fetch alerts failed: ", err)
 		}
 		nextID = respNext.NextID
 		for _, n := range respNext.Alerts {
+			if time.Unix(n.OpenedAt, 0).Month() == time.Now().Month() {
+				continue
+			}
+			if time.Unix(n.OpenedAt, 0).Month() >= time.Now().AddDate(0, -2, 0).Month() {
+				nextID = ""
+				break
+			}
 			numTotal++
 
 			switch n.Status {
@@ -77,31 +88,32 @@ func main() {
 
 	metricValues := []*mackerel.MetricValue{
 		{
-			Name:  "alerts.total_num",
+			Name:  "alerts-last-month.total_num",
 			Time:  time.Now().Unix(),
 			Value: numTotal,
 		},
 		{
-			Name:  "alerts.critical_num",
+			Name:  "alerts-last-month.critical_num",
 			Time:  time.Now().Unix(),
 			Value: numCritical,
 		},
 		{
-			Name:  "alerts.warning_num",
+			Name:  "alerts-last-month.warning_num",
 			Time:  time.Now().Unix(),
 			Value: numWarning,
 		},
 		{
-			Name:  "alerts.ok_num",
+			Name:  "alerts-last-month.ok_num",
 			Time:  time.Now().Unix(),
 			Value: numOK,
 		},
 		{
-			Name:  "alerts.unknown_num",
+			Name:  "alerts-last-month.unknown_num",
 			Time:  time.Now().Unix(),
 			Value: numUnknown,
 		},
 	}
+
 	err = client.PostServiceMetricValues(serviceName, metricValues)
 
 	if err != nil {
