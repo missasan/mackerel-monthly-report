@@ -30,11 +30,16 @@ func main() {
 	}
 
 	var (
-		numCritical int
-		numWarning  int
-		numOK       int
-		numUnknown  int
-		numTotal    int
+		// numCritical int
+		// numWarning  int
+		// numOK       int
+		// numUnknown  int
+		numTotal        int
+		numConnectivity int
+		numHost         int
+		numService      int
+		numExternal     int
+		numExpression   int
 	)
 
 	for _, a := range resp.Alerts {
@@ -44,15 +49,17 @@ func main() {
 
 		numTotal++
 
-		switch a.Status {
-		case "CRITICAL":
-			numCritical++
-		case "WARNING":
-			numWarning++
-		case "OK":
-			numOK++
-		case "UNKNOWN":
-			numUnknown++
+		switch a.Type {
+		case "connectivity":
+			numConnectivity++
+		case "host":
+			numHost++
+		case "service":
+			numService++
+		case "external":
+			numExternal++
+		case "expression":
+			numExpression++
 		}
 	}
 
@@ -73,15 +80,17 @@ func main() {
 			}
 			numTotal++
 
-			switch n.Status {
-			case "CRITICAL":
-				numCritical++
-			case "WARNING":
-				numWarning++
-			case "OK":
-				numOK++
-			case "UNKNOWN":
-				numUnknown++
+			switch n.Type {
+			case "connectivity":
+				numConnectivity++
+			case "host":
+				numHost++
+			case "service":
+				numService++
+			case "external":
+				numExternal++
+			case "expression":
+				numExpression++
 			}
 		}
 	}
@@ -93,24 +102,29 @@ func main() {
 			Value: numTotal,
 		},
 		{
-			Name:  "alerts-last-month.critical_num",
+			Name:  "alerts-last-month.connectivity_num",
 			Time:  time.Now().Unix(),
-			Value: numCritical,
+			Value: numConnectivity,
 		},
 		{
-			Name:  "alerts-last-month.warning_num",
+			Name:  "alerts-last-month.host_num",
 			Time:  time.Now().Unix(),
-			Value: numWarning,
+			Value: numHost,
 		},
 		{
-			Name:  "alerts-last-month.ok_num",
+			Name:  "alerts-last-month.service_num",
 			Time:  time.Now().Unix(),
-			Value: numOK,
+			Value: numService,
 		},
 		{
-			Name:  "alerts-last-month.unknown_num",
+			Name:  "alerts-last-month.external_num",
 			Time:  time.Now().Unix(),
-			Value: numUnknown,
+			Value: numExternal,
+		},
+		{
+			Name:  "alerts-last-month.expression_num",
+			Time:  time.Now().Unix(),
+			Value: numExpression,
 		},
 	}
 
