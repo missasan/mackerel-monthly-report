@@ -25,7 +25,7 @@ func main() {
 	serviceName := "mackerel-container-agent"
 
 	hosts, err := client.FindHosts(&mackerel.FindHostsParam{
-		Service:  serviceName,
+		// Service:  serviceName,
 		Statuses: []string{mackerel.HostStatusWorking},
 	})
 
